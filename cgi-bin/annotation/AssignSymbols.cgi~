@@ -1,0 +1,249 @@
+#!/usr/bin/perl
+#
+#
+# CGI script called from http://kirschner.med.harvard.edu/tools/genesym_assignment.html web page. Will execute:
+#   1. uploads file, verifying size and # transcripts
+#   2. file is copied (if not already) to "scratch" folder for work
+#   3. make protein ref scripts are called...
+# 
+  
+
+# DETAILS
+#   get new, unique directory on "scratch"
+#   grab upload filename and transfer to unique name on scratch
+#   verify filesize and throw error if too large
+#   start mz_ref script part1
+#   and save essential data for running script
+# 11/26/13, rmf
+#   coding started, using mz_ref_db/www_*.{cgi,pl} as base  
+# 08/11/15, Leon Peshkin 
+
+
+use strict;
+
+use lib "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment/lib/perl5";
+
+use English '-no_match_vars';
+use CGI qw(:standard escape escapeHTML);
+use FindBin;
+use File::Temp qw/ tempfile tempdir /;
+use File::Basename;
+use Data::Dumper;
+use Email::Valid;
+
+my $PROJECT_HOME = "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment";
+$ENV{'PERL5LIB'} = "$PROJECT_HOME/lib/perl5";
+$ENV{'PROJECT_HOME'} = $PROJECT_HOME;
+
+$OUTPUT_AUTOFLUSH = 1;
+my $debug = 0;
+my ($cmd, $result);
+my ($user_fasta_filename, $e_cutoff);
+my $email_body;
+my $BIN_ROOT = "$PROJECT_HOME/bin";
+my $max_file_size = 500 * 1024 * 1024; # 500 MB limit
+$CGI::POST_MAX = $max_file_size;
+
+my $dir_template = 'tempdirXXXXXXXX';
+my $file_template = 'tempfileXXXXXXXX';
+my $scratch = '/groups/kirschner_www/genesym_assignment'; 
+my $job_log_file = 'job_log.txt';
+ 
+# All output going to user's web browser
+my $browser = CGI->new;
+
+print header('text/html'),
+      start_html('Assigning Gene Symbols to a Protein FASTA File ...');
+  
+if ($debug) {
+    print "%ENV:<BR><BLOCKQUOTE>";
+    print Dumper(%ENV);
+    print "</BLOCKQUOTE><BR><BR>";
+}
+
+# grab form params, or supply our own if debugging
+my ($UPLOAD_FH, $sender_email);
+if (!$debug) {
+    #$UPLOAD_FH = param('upload_file');
+    $UPLOAD_FH = upload('upload_file');
+    $user_fasta_filename = param('upload_file');
+    $sender_email = param('email');
+    $e_cutoff = param('EvalueThreshold');
+} else {
+    $UPLOAD_FH = 'XGI.small.shuff.proteins.fa';
+    $user_fasta_filename = 'XGI.small.shuff.proteins.fa';
+    $sender_email = 'robertfreeman@g.harvard.edu';
+    $e_cutoff = '1e-5';
+}
+
+print `date` . "<BR><BR>";
+
+if (!defined $UPLOAD_FH) {
+    exit_with_error_msg('The FASTA filename seems to be missing. Please use your browser\'s Back button and specify a valid filename.');
+}
+
+# first check to see that email is well-formed
+if (! Email::Valid->address($sender_email)) {
+    # The email address is not valid
+    exit_with_error_msg('Your e-mail address does not appear to be valid. Please use your browser\'s Back button and correct the entry.');
+}
+
+# make our scratch dir if not already there
+if (! -e $scratch) {
+    if (! mkdir $scratch) {
+        exit_with_error_msg("Error creating the scratch directory $scratch:<BR>"
+            . "msg: $!<BR> Please contact support with this error message.");
+    }
+}
+
+# create tempdir and tempfile, opening the latter when created
+my ($tempdir_path, $tempdir, $DATFH, $fasta_pathname, $working_dir_path, $fasta_filename);
+eval {
+    $tempdir_path = tempdir( $dir_template, DIR => $scratch, CLEANUP => 0 );
+    `chmod go+rx $tempdir_path`;
+};
+exit_with_error_msg("Error creating the temporary directory for processing. "
+    . "Please contact support with this error message.") if $EVAL_ERROR;
+$tempdir = basename($tempdir_path);
+$working_dir_path = $tempdir_path;
+
+eval {
+    ($DATFH, $fasta_pathname) = tempfile( $file_template, SUFFIX => '.fasta', DIR => $tempdir_path, UNLINK => 0 );
+};
+exit_with_error_msg("Error creating the temporary file $scratch:<BR>"
+    . "Please contact support with this error message.") if $EVAL_ERROR;
+($fasta_filename) = fileparse($fasta_pathname);
+
+# and now copy the file up
+my ($data, $length, $chunk);
+if ($debug) {
+    my $DEBUGFH;
+    if (! open ($DEBUGFH, "<$UPLOAD_FH")) {
+        exit_with_error_msg("Error opening file $UPLOAD_FH for reading: $!");
+    }
+    $UPLOAD_FH = \*$DEBUGFH;
+}
+while ($chunk = read ($UPLOAD_FH, $data, 1024)) {
+    print $DATFH $data;
+    
+    $length += $chunk;
+    if ($length > $max_file_size) {
+        close $DATFH;
+        unlink $fasta_pathname;
+        exit_with_error_msg('The upload file is too large. The file size limit is 500 MB. '
+                             .' Please use your browser\'s Back button and select a smaller file.');
+    }
+}
+close $DATFH;
+
+if (! chdir $working_dir_path) {
+    exit_with_error_msg("Error changing to the working dircectory $working_dir_path:<BR>"
+        . "msg: $!<BR> Please contact support with this error message.");
+}
+
+# now sanity check # of sequences.
+# park this in www_make_mz_protein_ref_part1 script, as it's taking too long to count them...
+my $num_seqs = 0;
+# $num_seqs = `grep -c ">" $fasta_filename`;
+# $num_seqs += 0; 
+# if ($num_seqs > $max_num_seqs) { 
+#     unlink $fasta_pathname;
+#     exit_with_error_msg('I\'m sorry, but your file contains more than the allowed number of sequences (500K). '
+#                              .' Please adjust your file, use your browser\'s Back button and submit again.');
+# }
+
+
+# and call genesym_assignment script....
+$cmd = <<"BSUB_CMD";
+ . /opt/lsf/conf/profile.lsf\; bsub -q sysbio_1d -J www_genesym_assignment \\
+     -n 1 -R "span[hosts=1]" \\
+     -N -o $fasta_filename.stdout \\
+     -e $fasta_filename.stderr \\
+ $BIN_ROOT/annotation/www_make_genesym_assignment_part1.pl -f $fasta_filename -o proteins.genesym \\
+     --evalue $e_cutoff --email $sender_email
+BSUB_CMD
+;
+chomp $cmd; # remove the extra line ending so that we tack on extra params...
+$cmd =~ s/ -N // if $debug;
+
+my ($lsf_sub_result, $lsf_job_ID);
+$lsf_sub_result	= `$cmd`;    # Job <1636426> is submitted to queue <mini>.
+($lsf_job_ID) = $lsf_sub_result =~ m/Job <(\d+)>/;
+if (defined $lsf_job_ID) {
+
+    # save job ID in work directory
+    `touch jobID.$lsf_job_ID.jobID`;
+    # modify job name to include Job ID on the end
+    #`. /opt/lsf/conf/profile.lsf\; bmodify -J www_mz_ref_db_$lsf_job_ID $lsf_job_ID`;
+
+    my ($success_html, $success_email) = init_heredoc();
+    print $success_html;
+
+    # debug
+    # save email as text so can catch in actual script...
+    open (my $sender_emailFH, ">email.txt");
+    print {$sender_emailFH} $success_email;
+    close $sender_emailFH;
+    # debug
+    #   and do the same thing for the job command!
+    open (my $commandFH, ">command.txt");
+    print {$commandFH} $cmd;
+    close $commandFH;     
+
+    # log job entry
+    $result = `date`;
+    chomp $result;
+    my $website = 'prod';
+    $website = 'dev' if $ENV{'DOCUMENT_ROOT'} =~ m|/dev|; 
+    open (my $LOGFH, ">>$scratch/$job_log_file");
+    print {$LOGFH} join("\t", $result,$lsf_job_ID,$tempdir,$fasta_filename,$num_seqs,$sender_email,$ENV{'REMOTE_ADDR'},$website) . "\n";
+    close $LOGFH;
+
+} else {
+    exit_with_error_msg("I'm sorry, but there was a fatal error submitting the job to LSF.<BR>"
+            . "msg: $lsf_sub_result<BR>Please contact support with this error message.");
+}
+
+# 12/2/13, rmf
+# added cleanup routine for working directory
+`. /opt/lsf/conf/profile.lsf\; bsub -q mini find $scratch -mtime +7 -delete`;
+#
+
+exit;
+
+#
+#
+# END OF PROGRAM
+
+sub exit_with_error_msg {
+    my ($message) = @_;
+    print $message, end_html;
+    exit;
+}
+
+sub init_heredoc { 
+    my $success_email = <<"_SUCCESS_";
+Success! Your job has been submited to the pipeline for processing with the following options:
+
+Filename:           $user_fasta_filename
+E value cutoff:     $e_cutoff
+# sequences:        TBD
+
+JobID:              $lsf_job_ID
+Contact e-mail:     $sender_email
+Job log:            http://kirschner.med.harvard.edu/downloads/genesym_assignment_results/$tempdir/$fasta_filename.stdout
+Error log:          http://kirschner.med.harvard.edu/downloads/genesym_assignment_results/$tempdir/$fasta_filename.stderr
+
+Cmd:                $cmd
+
+
+
+An updated copy of this message will be sent via email and will include both validation results and an estimate of the compute time required.  Any questions, please do not hesitate to contact us at  robertfreeman\@g.harvard.edu .
+_SUCCESS_
+;
+
+    my $success_html = $success_email;
+    $success_html =~ s/\n/<BR>\n/g;
+    return ($success_html, $success_email);
+
+}

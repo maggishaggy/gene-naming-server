@@ -1,0 +1,22 @@
+<HTML>
+<HEAD>
+<TITLE>
+Mass Spec Protein Reference
+</TITLE>
+</HEAD>
+<BODY>
+Some intro text goes here...
+<P>Ipse lorum</P>
+<form action="cgi-bin/mz_ref_db/www_upload_verify_file.cgi" method="post" enctype="multipart/form-data">
+<P>Upoad your file to process...</P>
+<input type="file" name="upload_file" size="30">
+<br>
+<br>
+<P>Please give us your e-mail address to which we can send the results:</P>
+<input type="text" name="email" size="40">
+<br>
+<br>
+<input type="submit">
+</form>
+</BODY>
+</HTML>

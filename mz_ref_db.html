@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>
+Mass Spec Protein Reference
+</title>
+<style>
+body {background-color:"#f8f8f8"; font-family: helvetica, verdana, arial, tahoma, sans-serif, sans-serif; font-size: 12px;}
+TABLE {font-family: helvetica, verdana, arial, tahoma, sans-serif;font-size : 12px;}
+TD {font-family: helvetica, verdana, arial, tahoma, sans-serif;font-size : 12px;}
+H1 {color: #000000;font-family: helvetica, verdana, arial, tahoma, sans-serif;font-weight: bold;font-size: 20px;}
+H2 {color: #000000;font-family: helvetica, verdana, arial, tahoma, sans-serif;font-weight: bold;font-size: 16px;}
+H3 {color: #000000;font-family: helvetica, verdana, arial, tahoma, sans-serif;font-weight: bold;font-size: 14px;}
+P {color: #000000;font-family: helvetica, verdana, arial, tahoma, sans-serif, sans-serif; font-size: 12px; text-align: justify;}
+ul {font-family: helvetica, verdana, arial, tahoma, sans-serif;font-size : 12px;}
+li {font-family: helvetica, verdana, arial, tahoma, sans-serif;font-size : 12px; text-align: justify;}
+input {color: #000000;font-family: helvetica, verdana, arial, tahoma, sans-serif, sans-serif; font-size: 12px;}
+</style>
+<meta name="description" content="Deep Proteomics of the Xenopus laevis egg using an mRNA-derived Reference Database"
+</head>
+<body>
+<p>This is a companion site to the paper Curr Biol. 2014 Jul 7;24(13):1467-75<br><a href="http://www.ncbi.nlm.nih.gov/pubmed/24954049"><i>Deep Proteomics of the Xenopus laevis egg using an mRNA-derived Reference Database</i></a><br>
+by Wühr M, Freeman RM Jr, Presler M, Horb ME, Peshkin L, Gygi SP, Kirschner MW.<br />
+<p>
+
+<h3>Downloadable files:</h3>
+<table width="100%" border="1" cellspacing="1" cellpadding="3">
+  <tr>
+    <td width="23%"><a href="/downloads/phrog_1r0.fasta.zip" name="phrog_1r0.fasta.zip">PHROG_1r0.fasta.zip</a></td>
+    <td width="77%">Final protein reference database</td>
+  </tr>
+  <tr>
+    <td width="23%"><a href="/downloads/  <tr>
+    <td width="23%"><a href="/downloads/phrog_symdefs_uniq.tsv" name="phrog_symdefs_uniq.tsv">Gene Symbols PHROG_1r0</a></td>
+    <td width="77%">Gene Symbol assignment for PHROG </td>
+  </tr> 
+  <tr>
+    <td><a href="/downloads/Spectra_Pep_Prot_Mapping.xlsx">Spectra_Pep_Prot_Mapping.xlsx</a></td>
+    <td>Peptide/protein mapping of MS spectra</td>
+  </tr>
+  <tr>
+    <td><a href="/downloads/make_mz_ref_db_scripts.zip" name="make_mz_ref_db_scripts.zip" download="make_mz_ref_db_scripts.zip">make_mz_ref_db_scripts.zip</a></td>
+    <td>Scripts to locally run your own installation of the pipeline (the same
+    scripts used to create PHROG) + short How-To document </td>
+  </tr>
+  <tr>
+    <td><a href="../downloads/XGI.shuff.small.fa" name="XGI.shuff.small.fa" download="XGI.shuff.small.fa">XGI.shuff.small.fa</a></td>
+<td>If you don't have an mRNA transcript file to test our pipeline - download this sample file and use it in the form below.</td>
+  </tr> 
+  <tr>
+    <td width="23%"><a href="/downloads/mmc2.xlsx" name="mmc2.xlsx">mmc2.xlsx</a></td>
+    <td width="77%">Document S2. Tables S4-S6.  Estimated Protein Concentrations for Approximately 11,000 Proteins in the X. laevis Egg</td>
+  </tr>
+</table>
+<p>
+<h3>Creating a protein reference</h3>
+<p>
+This web tool makes a protein reference database from mRNA transcripts (in cDNA form) that is highly optimized for mass spec searches.
+To create your own protein reference database, plesae fill in the details below. Please remember the following:
+</p>
+<ul>
+	<li>Presently, the pipeline is geared towards deuterostomes and vertebrates. Other large divisions coming soon.</li>
+	<li>A maximum of 500K sequences can be submitted.</li>
+	<li>The maximum file size that can be submitted is 500 MB.</li>
+	<li>DO NOT SUBMIT RNA-seq reads. RNA-Seq data must already be assembled using a tool like <a href="http://trinityrnaseq.sourceforge.net/" name="Trinity">Trinity</a>.</li> 
+	<li>All sequence identifiers must be unique; otherwise the cluster and assembly phase will fail.</li>
+	<li>Please submit your mRNA transcripts as cDNA, i.e in DNA not RNA alphabet</li>
+	<li>Presently, some options are given (cluster % ID, cluster overlap len, assembly % ID). More will be offered in the near future.</li>
+</ul>
+
+<form action="cgi-bin/mz_ref_db/www_upload_verify_file.cgi" method="post" enctype="multipart/form-data">
+<p>Upload your FASTA file of mRNA (cDNA) transcripts...</p>
+<input type="file" name="upload_file" size="30" />
+<p>Cluster/Assembly Options:</p>
+<select name="ClustPcntID">
+<option selected value="94">94
+<option value="95">95
+<option value="96">96
+<option value="97">97
+<option value="98">98
+<option value="99">99
+<option value="100">100
+</select> Clustering % identity<br>
+
+<select name="ClustMinOvrlapLen">
+<option selected value="100">100
+<option value="125">125
+<option value="150">150
+<option value="175">175
+<option value="200">200
+<option value="225">225
+<option value="250">250
+</select> Cluster minimum overlap length (bp)<br />
+
+<select name="AsmPcntID">
+<option selected="selected">93</option>
+<option>94</option>
+<option>95</option>
+<option>96</option>
+<option>97</option>
+<option>98</option>
+<option>99</option>
+<option>100</option>
+</select> Assembly % identity<br>
+
+<p>
+Translation frame/frameshift detection:<br />
+<select name="blast_db">
+<option VALUE = "model_chordate_proteins"> Vertebrates
+<option VALUE = "model_deuterostome_proteins"> Deuterostomes
+</select>BLASTX detection database<br />
+
+
+<select name="TlnEFilter">
+<option selected value="1e-5">1e-5
+<option value="1e-10">1e-10
+<option value="1e-15">1e-15
+<option value="1e-20">1e-20
+</select> Translation filter E cutoff<br />
+
+<p>Please give us your e-mail address to which we can send the results:</p>
+<input type="text" name="email" size="40" />
+<br />
+<br />
+<input type="submit" name="Submit" value="Submit" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="reset" name="Clear" value="Clear" />
+</form>
+
+<br /><br />
+<hr>
+<p>
+<font size=-2>If you should encounter any errors while submitting a job or during job processing, please contact
+<a href="mailto:pesha@hms.harvard.edu">Leon Peshkin</a> or 
+<a href="mailto:bob_freeman@hms.harvard.edu">Bob Freeman</a>.
+Please be patient -- support requests will be handled has quickly as possible.</font>
+
+<hr>
+<h2>
+Other tools...
+</h2>
+<p>
+<a href="/tools/genesym_assignment.html">Gene symbol assignment to proteins</a> <br>
+<a href="/tools/digest.gawk">An AWK script to digest proteins into Tryptic peptides</a> ( Trypsin is '[KR][^P]' ) 
+</p>
+ <br />
+<br />
+
+
+</body>
+</html>

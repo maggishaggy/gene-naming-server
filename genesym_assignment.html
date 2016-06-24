@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>
+Gene Symbol Assignment
+</title>
+</head>
+<body bgcolor="#A9E2F3">
+<h2>
+Assigning (Human) Gene Symbols to a Protein FASTA File...
+</h2>
+<p>
+Welcome! This web tool will use a reciprocal BLAST methodology to assign gene symbols from a human reference protein data set to your protein set of interest.
+</p>
+
+
+<p>
+This online tool has the following, current restrictions:
+</p>
+
+<ul>
+	<li>Presently, the pipeline is geared towards vertebrates with a human gene symbol source. Other large divisions coming soon.</li>
+	<li>A maximum of 500K sequences can be submitted.</li>
+	<li>The maximum file size that can be submitted is 500 MB.</li>
+	<li>All sequence identifiers must be unique; otherwise the assignment will fail silently.</li>
+	<li>Presently, default options will be used (E value threshold of 1e-5). This will change in the near future.</li>
+
+</ul>
+<br />
+<p>
+To create your own protein reference file with assigned gene symbols, please fill in the details below. 
+</p>
+
+
+
+
+<form action="cgi-bin/annotation/www_upload_verify_file.cgi" method="post" enctype="multipart/form-data">
+<p>Upoad your FASTA file of proteins:</p>
+<input type="file" name="upload_file" size="30">
+<br />
+<br />
+<select name="EvalueThreshold">
+<option>5</option>
+<option>1</option>
+<option selected="selected">1e-5</option>
+<option>1e-10</option>
+<option>1e-15</option>
+<option>1e-20</option>
+<option>1e-25</option>
+<option>1e-30</option>
+</select> E value cutoff threshold<br />
+
+<p>Please give us your e-mail address to which we can send the results:</p>
+<input type="text" name="email" size="40" />
+<br />
+<br />
+<input type="submit" name="Submit" value="Submit" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<input type="reset" name="Clear" value="Clear" />
+</form>
+
+
+<br /><br /><br />
+<hr>
+<p>
+If you should encounter any errors while submitting a job or during job processing, please contact
+<a href="mailto: pesha at hms dot harvard dot edu">pesha@hms.harvard.edu</a>.
+Please be patient -- support requests will be handled as quickly as possible. Do not forget to give credit. 
+</p>
+</body>
+</html>
