@@ -81,7 +81,7 @@ if (!$debug) {
 print `date` . "<BR><BR>";
 
 if (!defined $UPLOAD_FH) {
-    exit_with_error_msg('I\m sorry, but the FASTA filename seems to be missing. Please use your browser\'s Back button and specify a valid filename.');
+    exit_with_error_msg('I\'m sorry, but the FASTA filename seems to be missing. Please use your browser\'s Back button and specify a valid filename.');
 }
 
 # first check to see that email is well-formed
