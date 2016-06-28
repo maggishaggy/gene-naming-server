@@ -21,7 +21,7 @@
 
 use strict;
 
-use lib "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment/lib/perl5";
+use lib "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment_new/lib/perl5";
 
 use English '-no_match_vars';
 use CGI qw(:standard escape escapeHTML);
@@ -32,7 +32,7 @@ use Data::Dumper;
 use Email::Valid;
 
 
-my $PROJECT_HOME = "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment";
+my $PROJECT_HOME = "$ENV{'DOCUMENT_ROOT'}/../support/genesym_assignment_new";
 $ENV{'PERL5LIB'} = "$PROJECT_HOME/lib/perl5";
 $ENV{'PROJECT_HOME'} = $PROJECT_HOME;
 
@@ -69,6 +69,8 @@ if (!$debug) {
     #$UPLOAD_FH = param('upload_file');
     $UPLOAD_FH = upload('upload_file');
     $user_fasta_filename = param('upload_file');
+    $UPLOAD_RF = upload('reference_genome');
+    $reference_genome = param('reference_genome');
     $sender_email = param('email');
     $e_cutoff = param('EvalueThreshold');
 } else {
@@ -82,6 +84,10 @@ print `date` . "<BR><BR>";
 
 if (!defined $UPLOAD_FH) {
     exit_with_error_msg('I\'m sorry, but the FASTA filename seems to be missing. Please use your browser\'s Back button and specify a valid filename.');
+}
+
+if (!defined $UPLOAD_FH) {
+    $reference_genome = "default"
 }
 
 # first check to see that email is well-formed
@@ -164,7 +170,7 @@ $cmd = <<"BSUB_CMD";
      -n 1 -R "span[hosts=1]" \\
      -N -o $fasta_filename.stdout \\
      -e $fasta_filename.stderr \\
- $BIN_ROOT/annotation/www_make_genesym_assignment_part1.pl -f $fasta_filename -o proteins.genesym \\
+ $BIN_ROOT/annotation/www_make_genesym_assignment_part1.pl -f $fasta_filename -r $reference_genome -o proteins.genesym \\
      --evalue $e_cutoff --email $sender_email
 BSUB_CMD
 ;
